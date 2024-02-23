@@ -1,5 +1,8 @@
 package com.mygdx.game.visao;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -10,6 +13,8 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -28,22 +33,14 @@ import com.mygdx.game.sockets.ServerListenClientsThread;
 
 public class EscovaGUI extends ApplicationAdapter {
 	Stage stage;
-	// SpriteBatch batch;
-	// Texture img;
-	// Image img;
-	TextButton bquit;
-	TextButton bserver;
-	TextButton bclient;
-	TextButton bturno;
 	EstadoJogo estado;
-	VerticalGroup gMao1;
-	VerticalGroup gMao2;
-	VerticalGroup gMao3;
-	// Image back;
-	// Stack g = new Stack();//ficam empilhados e stratched ao tamanho do stack
-	// WidgetGroup g = new WidgetGroup();//parece na renderizar o WidgetGroup
+
 	// Define o comportamento de arrastar e soltar
 	DragAndDrop dragAndDrop = new DragAndDrop();
+
+	public EscovaGUI(EstadoJogo ultimoMemento) {
+		this.estado = ultimoMemento;
+	}
 
 	private void dragDrop(final Actor actor, Actor t) {
 		dragAndDrop.addSource(new Source(actor) {
@@ -52,12 +49,13 @@ public class EscovaGUI extends ApplicationAdapter {
 				System.out.println("X=" + x + " Y=" + y);
 				System.out.println("actorX=" + actor.getX() + " actorY=" + actor.getY());
 				System.out.println("getOriginX=" + actor.getOriginX() + " getOriginY=" + actor.getOriginY());
-				//dragAndDrop.setDragActorPosition(8/* actor.getWidth() / 2 */, -50/*-actor.getHeight() / 2*/);
+				// dragAndDrop.setDragActorPosition(8/* actor.getWidth() / 2 */,
+				// -50/*-actor.getHeight() / 2*/);
 				Payload payload = new Payload();
 				// payload.setObject(actor);// ?necessario?
 				System.out.println("inicio " + stage.getActors().size);
 				VerticalGroup tempGroup = new VerticalGroup();
-				tempGroup.space(-75);
+				tempGroup.space(-79);
 				stage.addActor(tempGroup);
 				SnapshotArray<Actor> cards = actor.getParent().getChildren();
 				int start = cards.indexOf(actor, true);
@@ -69,7 +67,7 @@ public class EscovaGUI extends ApplicationAdapter {
 				for (Actor actor2 : a) {
 					tempGroup.addActor(actor2);
 				}
-				
+
 //				for (int i = start; i < actor.getParent().getChildren().size; i++) {
 //					System.out.println("adicionou " + i);
 //					tempGroup.addActor(cards.get(i));
@@ -89,7 +87,7 @@ public class EscovaGUI extends ApplicationAdapter {
 			public boolean drag(Source source, Payload payload, float x, float y, int pointer) {
 				// TODO ainda tem um provavel bug no libgdx quando o drag inicia dentro de um
 				// grupo com x<>0, ele joga a imagem (o "x" do grupo) a mais para a direita.
-				//TODO ao criar o grupo temporario o bug mudou, agora joga 75pix? pra baixo.
+				// TODO ao criar o grupo temporario o bug mudou, agora joga 75pix? pra baixo.
 //				System.out.println("drag... x=" + x + " y=" + y);
 //				System.out.println(source.getActor().getName() + " x=" + source.getActor().getX() + " y="
 //						+ source.getActor().getY());
@@ -118,17 +116,16 @@ public class EscovaGUI extends ApplicationAdapter {
 
 				Group gSource = (Group) payload.getDragActor();
 				Group gTarget = (Group) this.getActor();
-				
-				
-				//int start = cards.indexOf(actor, true);
+
+				// int start = cards.indexOf(actor, true);
 				int newSize = gSource.getChildren().size;// - start;
 				// tempArray necessario pq o addActor tb remove do grupo anterior
 				SnapshotArray<Actor> a = new SnapshotArray<>(true, newSize);
 				a.addAll(gSource.getChildren());
-				for (Actor actor2 : a) {				
+				for (Actor actor2 : a) {
 					gTarget.addActor(actor2);
 				}
-				
+
 //				for (Actor a : gSource.getChildren()) {
 //					System.out.println("adding "+a);
 //					gTarget.addActor(a);
@@ -145,13 +142,73 @@ public class EscovaGUI extends ApplicationAdapter {
 		});
 	}
 
+	private Float recursivo(Zona z, Float delta, List<Image> cards, List<VerticalGroup> maos) {
+		if (!z.getFilhos().isEmpty()) {
+			if (z instanceof EstadoJogo) {
+				// delta = recursivo(((EstadoJogo) z).getDeck(), delta, cards, maos);
+			}
+			for (Zona z2 : z.getFilhos()) {
+				delta = recursivo(z2, delta, cards, maos);
+			}
+			if ("estado".equals(z.getName()))
+				return delta;
+			System.out.println("saindo recursao");
+		}
+		// else
+		{
+			if (z instanceof CartaBaralho) {
+				CartaBaralho c = (CartaBaralho) z;
+				Image i = new Image(new Texture("baralhos/" + c.getImgPath()));
+				// i.setPosition(delta, delta);
+				i.setName("carta " + c.getImgPath());
+				// i.setDebug(true);
+				// i.setPosition(0, 0);
+				// delta += 15;
+				cards.add(i);
+			} else if (z instanceof Zona) {
+				VerticalGroup g = new VerticalGroup();// fica um abaixo do outro
+				//g.setFillParent(true);
+				Label.LabelStyle label1Style = new Label.LabelStyle();
+				BitmapFont myFont = new BitmapFont();
+				label1Style.font = myFont;
+				label1Style.fontColor = Color.RED;
+				Label label = new Label(z.getName(), label1Style);
+				// TODO adicao do label aqui bagunça a posição do inicio das cartas no vgroup
+//				VerticalGroup v2 = new VerticalGroup();
+//				v2.addActor(label);
+//				g.addActor(v2);
+				label.setSize(50, 20);
+				g.addActor(label);
+
+				g.setName(z.getName());
+				g.setDebug(true);
+				g.space(-79);// vgroup
+				g.pad(5);// vgroup
+				g.setSize(100, stage.getHeight());
+//				System.out.println("stageX=" + stageX + " delta=" + delta + " stageY" + stageY);
+				g.setPosition(/* stageX + */ delta, 0/* stageY */);
+				// g.setX(delta);
+				// g.setBounds(delta, 0, 100, 400);
+
+//				g.addListener(new DragListener() {
+//					@Override
+//					public void drag(InputEvent event, float x, float y, int pointer) {
+//						// super.drag(event, x, y, pointer);
+//						System.out.println(event.getTarget().getName());
+//					}
+//				});
+				delta += 105;
+				maos.add(g);
+				// all.addActor(g);
+			}
+		}
+		return delta;
+	}
+
 	void estado2Group(EstadoJogo estado) {
-		estado.add(new Zona("Mão1", null, null));
-		estado.add(new Zona("Mão2", null, null));
-		estado.add(new Zona("Mão3", null, null));
-		estado.add(new CartaBaralho("c1.gif"));
-		estado.add(new CartaBaralho("c2.gif"));
-		estado.add(new CartaBaralho("c3.gif"));
+		Group all = (Group) stage.getActors().get(0);
+		List<Image> cards = new ArrayList<>();
+		List<VerticalGroup> maos = new ArrayList<>();// fica um abaixo do outro
 
 		// Actor a = new Actor();
 		// a.setBounds(0, 0, 550, 550);
@@ -170,50 +227,28 @@ public class EscovaGUI extends ApplicationAdapter {
 		// minsize?
 		// TODO zonas tb devem ter name?
 		if (estado != null) {
-			float stageX = Gdx.graphics.getWidth() - stage.getWidth();
-			float stageY = Gdx.graphics.getHeight() - stage.getHeight();
 			float delta = 0;
-			for (Zona z : estado.getFilhos()) {
-				if (z instanceof CartaBaralho) {
-					CartaBaralho c = (CartaBaralho) z;
-					Image i = new Image(new Texture("baralhos/" + c.getImgPath()));
-					// i.setPosition(delta, delta);
-					i.setName("carta " + c.getImgPath());
-					// i.setDebug(true);
-					// i.setPosition(0, 0);
-					// delta += 15;
-					dragDrop(i, gMao1);
-					dragDrop(i, gMao2);
-					dragDrop(i, gMao3);
-					gMao1.addActor(i);
-				} else if (z instanceof Zona) {
-					VerticalGroup g = new VerticalGroup();// fica um abaixo do outro
-					if (z.getName().equals("Mão1")) {
-						gMao1 = g;
-					} else if (z.getName().equals("Mão2")) {
-						gMao2 = g;
-					} else if (z.getName().equals("Mão3")) {
-						gMao3 = g;
-					}
-					// g.setName("mão");
-					g.setDebug(true);
-					g.space(-75);// vgroup
-					g.pad(5);// vgroup
-					g.setSize(100, stage.getHeight());
-					System.out.println("stageX=" + stageX + " delta=" + delta + " stageY" + stageY);
-					g.setPosition(/* stageX + */ delta, 0/* stageY */);
-					// g.setX(delta);
-					// g.setBounds(delta, 0, 100, 400);
 
-//					g.addListener(new DragListener() {
-//						@Override
-//						public void drag(InputEvent event, float x, float y, int pointer) {
-//							// super.drag(event, x, y, pointer);
-//							System.out.println(event.getTarget().getName());
-//						}
-//					});
-					delta += 150;
-					stage.addActor(g);
+			// for (Zona z : estado.getFilhos())
+			{
+				delta = recursivo(estado, delta, cards, maos);
+			}
+
+			for (VerticalGroup g : maos) {
+				all.addActor(g);
+			}
+
+			for (Image i : cards) {
+				for (VerticalGroup g : maos) {
+					dragDrop(i, g);
+				}
+				Group a = all.findActor("MaoPC");
+				//if (a.getChildren().size > 0)
+				{
+//					a.addActorAt(a.getChildren().size - 1, i);
+//				} else {
+					i.setSize(15, 95);
+					a.addActor(i);
 				}
 			}
 		}
@@ -249,9 +284,25 @@ public class EscovaGUI extends ApplicationAdapter {
 	public void create() {
 		stage = new Stage(new ScreenViewport());
 		Gdx.input.setInputProcessor(stage);
+		Table all = new Table();
+		// all.setSize(700, 500);
+		stage.addActor(all);
+		// SpriteBatch batch;
+		// Texture img;
+		// Image img;
+		TextButton bquit;
+		TextButton bserver;
+		TextButton bclient;
+		TextButton bturno;
+
+		// Image back;
+		// Stack g = new Stack();//ficam empilhados e stratched ao tamanho do stack
+		// WidgetGroup g = new WidgetGroup();//parece na renderizar o WidgetGroup
 
 		System.out.println(Gdx.graphics.getWidth() + "," + Gdx.graphics.getHeight());
-		estado2Group(new EstadoJogo());
+
+		criaEstado();
+
 		// g.setLayoutEnabled​(false);
 		// g.setSize(300, 300);
 		// back = new Image(new Texture("baralhos/border.gif"));
@@ -306,7 +357,6 @@ public class EscovaGUI extends ApplicationAdapter {
 				System.out.println("turno");
 			}
 		});
-
 //		stage.addActor(back);
 		// g.addActor(back);
 //		stage.addActor(g);
@@ -315,6 +365,17 @@ public class EscovaGUI extends ApplicationAdapter {
 //		stage.addActor(bclient);
 		stage.addActor(bturno);
 		stage.addActor(bquit);
+	}
+
+	private void criaEstado() {
+//		EstadoJogo estado = new EstadoJogo();
+//		estado.add(new Zona("Mão1", null, null));
+//		estado.add(new Zona("Mão2", null, null));
+//		estado.add(new Zona("Mão3", null, null));
+//		estado.add(new CartaBaralho("c1.gif"));
+//		estado.add(new CartaBaralho("c2.gif"));
+//		estado.add(new CartaBaralho("c3.gif"));
+		estado2Group(estado);
 	}
 
 	@Override

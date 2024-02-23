@@ -1,14 +1,7 @@
 package com.mygdx.game.model;
 
-import java.awt.Image;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
 import com.mygdx.game.model.Constantes.Naipes;
 import com.mygdx.game.model.Constantes.Valores;
-import com.mygdx.game.model.Zona.TipoZona;
-import com.mygdx.game.visao.GUIPreferencias;
 
 import lombok.Data;
 
@@ -29,12 +22,6 @@ public class CartaBaralho extends Zona {
 		// Mouse mo = new Mouse();
 		// addMouseListener(mo);
 		// addMouseMotionListener(mo);
-	}
-
-	//TODO remover?
-	public CartaBaralho(String string) {
-		super(string, null, TipoZona.PUBLICA);
-		imgPath=string;
 	}
 
 	/**
@@ -68,7 +55,7 @@ public class CartaBaralho extends Zona {
 			}
 			foto += valor.ordinal() + ".gif";
 		}
-
+		imgPath = foto;
 //		Icon i0 = new ImageIcon(ClassLoader.getSystemResource(Constantes.BARALHOS + foto));
 //		Icon i = new ImageIcon(((ImageIcon) i0).getImage().getScaledInstance(GUIPreferencias.deckX,
 //				GUIPreferencias.deckY, Image.SCALE_DEFAULT));

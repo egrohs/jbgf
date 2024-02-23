@@ -9,20 +9,24 @@ import lombok.Data;
 @Data
 //Equivale ao Group do Libgdx
 public class Zona implements Cloneable {
-	//---criados para compatibilidade temporaria---
+	// ---criados para compatibilidade temporaria---
 	protected String name;
 	protected Zona parent;
-	protected List<Zona> filhos=new ArrayList<>();
+	protected List<Zona> filhos = new ArrayList<>();
+
 	public Zona getComponent(int i) {
-		return filhos.get(0);
+		return filhos.get(i);
 	}
-	protected List<Zona> getComponents(){
+
+	protected List<Zona> getComponents() {
 		return filhos;
 	}
-	protected int getComponentZOrder(Zona z){
+
+	protected int getComponentZOrder(Zona z) {
 		return 0;
 	}
-	//---------------------------------------------
+
+	// ---------------------------------------------
 	public static enum TipoZona {
 		/* NINGUEM */PROTEGIDA, /* DONOS */PRIVADA, /* TODOS */PUBLICA;
 	}
@@ -36,17 +40,17 @@ public class Zona implements Cloneable {
 	// TODO fazer as zonas terem props como minDistX e minDistY passadas no
 	// contrutor
 	public Zona(String nome, String[] donos, /* Zona conteudo, */TipoZona visivelPor) {
-		name=nome;
+		name = nome;
 		if (donos != null) {
 			this.donos = Arrays.asList(donos);
 		}
 		// TODO remover isso???
-		//setName(nome);
+		// setName(nome);
 		if (!(this instanceof CartaBaralho)) {
-			//setBorder(BorderFactory.createTitledBorder(nome));
+			// setBorder(BorderFactory.createTitledBorder(nome));
 		}
 		this.visivelPor = visivelPor;
-		//setMinimumSize(new Dimension(GUIPreferencias.deckX, GUIPreferencias.deckY));
+		// setMinimumSize(new Dimension(GUIPreferencias.deckX, GUIPreferencias.deckY));
 	}
 
 	public EstadoJogo getEstado() {
@@ -69,12 +73,12 @@ public class Zona implements Cloneable {
 		return null;
 	}
 
-	//@Override
+	// @Override
 	public Zona add(Zona comp) {
-		return add(comp, 0);//TODO 0 ou size-1?
+		return add(comp, 0);// TODO 0 ou size-1?
 	}
 
-	//@Override
+	// @Override
 	public Zona add(Zona comp, int index) {
 		if (!(comp instanceof Zona)) {
 			// Nao deve fazer nada
@@ -82,23 +86,23 @@ public class Zona implements Cloneable {
 			return null;
 		}
 		Zona antesMove = comp.getParent();
-		//super.add(comp, index);
-		//TODO filhos.add(index, comp);
+		// super.add(comp, index);
+		// TODO filhos.add(index, comp);
 		filhos.add(comp);
 		Zona novaZona = (Zona) comp;
 		// Quando uma zona muda de local ela muda de dono.
 		novaZona.setDonos(donos);
 		novaZona.visivelPor = visivelPor;
-		//TODO reorganiza();
-		//TODO firePropertyChange("moveu", antesMove, this);
+		// TODO reorganiza();
+		// TODO firePropertyChange("moveu", antesMove, this);
 		return comp;
 	}
 
-	//@Override
+	// @Override
 	public void remove(Zona comp) {
-		//super.remove(comp);
+		// super.remove(comp);
 		filhos.remove(comp);
-		//TODO reorganiza();
+		// TODO reorganiza();
 	}
 
 	public void setDonos(List<String> donos) {

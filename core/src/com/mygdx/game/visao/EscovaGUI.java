@@ -18,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop.Payload;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop.Source;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop.Target;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.SnapshotArray;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.mygdx.game.model.CartaBaralho;
 import com.mygdx.game.model.EstadoJogo;
@@ -51,13 +52,34 @@ public class EscovaGUI extends ApplicationAdapter {
 				System.out.println("X=" + x + " Y=" + y);
 				System.out.println("actorX=" + actor.getX() + " actorY=" + actor.getY());
 				System.out.println("getOriginX=" + actor.getOriginX() + " getOriginY=" + actor.getOriginY());
-				dragAndDrop.setDragActorPosition(8/* actor.getWidth() / 2 */, -50/*-actor.getHeight() / 2*/);
+				//dragAndDrop.setDragActorPosition(8/* actor.getWidth() / 2 */, -50/*-actor.getHeight() / 2*/);
 				Payload payload = new Payload();
 				// payload.setObject(actor);// ?necessario?
-				payload.setDragActor(actor); // Define o ator a ser arrastado
+				System.out.println("inicio " + stage.getActors().size);
+				VerticalGroup tempGroup = new VerticalGroup();
+				tempGroup.space(-75);
+				stage.addActor(tempGroup);
+				SnapshotArray<Actor> cards = actor.getParent().getChildren();
+				int start = cards.indexOf(actor, true);
+				int newSize = cards.size - start;
+
+				// tempArray necessario pq o addActor tb remove do grupo anterior
+				SnapshotArray<Actor> a = new SnapshotArray<>(true, newSize);
+				a.addAll(cards, start, newSize);
+				for (Actor actor2 : a) {
+					tempGroup.addActor(actor2);
+				}
+				
+//				for (int i = start; i < actor.getParent().getChildren().size; i++) {
+//					System.out.println("adicionou " + i);
+//					tempGroup.addActor(cards.get(i));
+//				}
+				payload.setDragActor(tempGroup); // Define o ator a ser arrastado
+
 				System.out.println(actor.getName());
 				// System.out.println("startdrag mao1=" + gMao1.getChildren().size + ", mao2=" +
 				// gMao2.getChildren().size);
+				System.out.println("after start " + stage.getActors().size);
 				return payload;
 			}
 		});
@@ -67,6 +89,7 @@ public class EscovaGUI extends ApplicationAdapter {
 			public boolean drag(Source source, Payload payload, float x, float y, int pointer) {
 				// TODO ainda tem um provavel bug no libgdx quando o drag inicia dentro de um
 				// grupo com x<>0, ele joga a imagem (o "x" do grupo) a mais para a direita.
+				//TODO ao criar o grupo temporario o bug mudou, agora joga 75pix? pra baixo.
 //				System.out.println("drag... x=" + x + " y=" + y);
 //				System.out.println(source.getActor().getName() + " x=" + source.getActor().getX() + " y="
 //						+ source.getActor().getY());
@@ -89,10 +112,32 @@ public class EscovaGUI extends ApplicationAdapter {
 				// Define o comportamento ao soltar o elemento arrastado
 				// actor.setPosition(x - actor.getWidth() / 2, y - actor.getHeight() / 2);
 				// Torna o elemento dropado filho do target
-
+				System.out.println("incio drop " + stage.getActors().size);
 				// ((Group) this.getActor()).addActor(payload.getDragActor());
 				System.out.println(payload.getDragActor().getName());
-				((Group) this.getActor()).addActor(payload.getDragActor());
+
+				Group gSource = (Group) payload.getDragActor();
+				Group gTarget = (Group) this.getActor();
+				
+				
+				//int start = cards.indexOf(actor, true);
+				int newSize = gSource.getChildren().size;// - start;
+				// tempArray necessario pq o addActor tb remove do grupo anterior
+				SnapshotArray<Actor> a = new SnapshotArray<>(true, newSize);
+				a.addAll(gSource.getChildren());
+				for (Actor actor2 : a) {				
+					gTarget.addActor(actor2);
+				}
+				
+//				for (Actor a : gSource.getChildren()) {
+//					System.out.println("adding "+a);
+//					gTarget.addActor(a);
+//				}
+				// System.out.println(gSource.getChildren().size);
+				System.out.println("fim1 drop " + stage.getActors().size);
+				gSource.remove();
+
+				System.out.println("fim2 drop " + stage.getActors().size);
 				// System.out.println("drop mao1=" + gMao1.getChildren().size + ", mao2=" +
 				// gMao2.getChildren().size);
 				// Gdx.graphics.requestRendering();

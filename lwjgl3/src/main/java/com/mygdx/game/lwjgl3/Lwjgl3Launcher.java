@@ -2,7 +2,9 @@ package com.mygdx.game.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import com.mygdx.game.Main;
+import com.mygdx.game.EscovaGUI;
+import com.mygdx.game.JogoEscova;
+import com.mygdx.game.model.EstadoJogo;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
@@ -12,7 +14,22 @@ public class Lwjgl3Launcher {
     }
 
     private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new Main(), getDefaultConfiguration());
+        //return new Lwjgl3Application(new ExemploSkin(), getDefaultConfiguration());
+
+		JogoEscova j = new JogoEscova(new EstadoJogo());
+		j.configuraEstado(new String[] { "PC", "Egrohs" });
+//		System.out.println(j);
+/////new Lwjgl3Application(new DragNoDrop(), config);
+		// new Lwjgl3Application(new DragAndDropExample(), config);
+		return new Lwjgl3Application(new EscovaGUI(j.getUltimoMemento()), getDefaultConfiguration());
+//		{
+//			@Override
+//			public void exit() {
+//				System.out.println("vai exit");
+//				//if (((EscovaGUI) getApplicationListener()).canClose())
+//					super.exit();
+//			}
+//		};
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
